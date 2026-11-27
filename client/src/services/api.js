@@ -1,8 +1,15 @@
 const DEFAULT_TIMEOUT_MS = 45000;
 
 export function getApiBaseUrl() {
-  const configured = import.meta.env.VITE_API_BASE_URL || 'http://localhost:5000';
-  return String(configured).replace(/\/+$/, '');
+  const configured = import.meta.env.VITE_API_BASE_URL;
+  if (configured && String(configured).trim()) {
+    return String(configured).trim().replace(/\/+$/, '');
+  }
+  // Use same-origin /api/* proxy in production (Netlify -> Render) so HttpOnly cookies remain first-party
+  if (import.meta.env.PROD) {
+    return '';
+  }
+  return 'http://localhost:5000';
 }
 
 /**

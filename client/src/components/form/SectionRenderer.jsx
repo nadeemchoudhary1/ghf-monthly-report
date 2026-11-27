@@ -1,10 +1,28 @@
 import { Lock, ShieldAlert } from 'lucide-react';
+import { useEffect, useState } from 'react';
 import { OPTION_SETS } from '../../schemas/answerMappings.js';
 import { getSectionById, getSectionFields } from '../../schemas/formSchema.js';
 import FieldRenderer from './FieldRenderer.jsx';
 
+function useIsDesktop() {
+  const [isDesktop, setIsDesktop] = useState(() =>
+    typeof window !== 'undefined' ? window.matchMedia('(min-width: 768px)').matches : true
+  );
+
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 768px)');
+    const handler = (e) => setIsDesktop(e.matches);
+    setIsDesktop(mq.matches);
+    mq.addEventListener('change', handler);
+    return () => mq.removeEventListener('change', handler);
+  }, []);
+
+  return isDesktop;
+}
+
 function NamazMatrix({ fields, answers, onChange }) {
   const columns = Object.entries(OPTION_SETS.NAMAZ_STATUS);
+  const isDesktop = useIsDesktop();
 
   return (
     <div className="space-y-3">
@@ -12,80 +30,82 @@ function NamazMatrix({ fields, answers, onChange }) {
         पाँच वक़्त की नमाज़ की स्थिति दर्ज करें:
       </h3>
 
-      {/* Desktop / Tablet Matrix */}
-      <div className="hidden overflow-hidden rounded-xl border border-emerald-900/15 bg-white md:block">
-        <table className="w-full border-collapse text-sm">
-          <thead>
-            <tr className="bg-emerald-50 text-emerald-950">
-              <th className="border-b border-emerald-900/10 px-4 py-3 text-left font-bold">
-                नमाज़
-              </th>
-              {columns.map(([code, label]) => (
-                <th
-                  key={code}
-                  className="border-b border-emerald-900/10 px-4 py-3 text-center font-bold"
-                >
-                  {label}
+      {isDesktop ? (
+        /* Desktop / Tablet Matrix */
+        <div className="overflow-hidden rounded-xl border border-emerald-900/15 bg-white">
+          <table className="w-full border-collapse text-sm">
+            <thead>
+              <tr className="bg-emerald-50 text-emerald-950">
+                <th className="border-b border-emerald-900/10 px-4 py-3 text-left font-bold">
+                  नमाज़
                 </th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {fields.map((field) => {
-              const selected = answers[String(field.id)];
-              return (
-                <tr
-                  key={field.id}
-                  className="border-b border-slate-100 last:border-b-0 hover:bg-emerald-50/30"
-                >
-                  <td className="px-4 py-3 font-semibold text-slate-900">
-                    {field.label}
-                  </td>
-                  {columns.map(([codeStr]) => {
-                    const code = Number(codeStr);
-                    const isChecked = Number(selected) === code;
-                    const inputId = `matrix-${field.id}-${code}`;
-                    return (
-                      <td key={code} className="px-4 py-2 text-center">
-                        <label
-                          htmlFor={inputId}
-                          className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-lg hover:bg-emerald-50"
-                        >
-                          <input
-                            id={inputId}
-                            type="radio"
-                            name={`field-${field.id}`}
-                            checked={isChecked}
-                            onChange={() => onChange(field.id, code)}
-                            aria-label={`${field.label} - ${field.options[code]}`}
-                            className="h-5 w-5 cursor-pointer accent-emerald-700"
-                          />
-                        </label>
-                      </td>
-                    );
-                  })}
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
-
-      {/* Mobile Cards */}
-      <div className="space-y-3 md:hidden">
-        {fields.map((field) => (
-          <div
-            key={field.id}
-            className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5"
-          >
-            <FieldRenderer
-              field={field}
-              value={answers[String(field.id)]}
-              onChange={onChange}
-            />
-          </div>
-        ))}
-      </div>
+                {columns.map(([code, label]) => (
+                  <th
+                    key={code}
+                    className="border-b border-emerald-900/10 px-4 py-3 text-center font-bold"
+                  >
+                    {label}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {fields.map((field) => {
+                const selected = answers[String(field.id)];
+                return (
+                  <tr
+                    key={field.id}
+                    className="border-b border-slate-100 last:border-b-0 hover:bg-emerald-50/30"
+                  >
+                    <td className="px-4 py-3 font-semibold text-slate-900">
+                      {field.label}
+                    </td>
+                    {columns.map(([codeStr]) => {
+                      const code = Number(codeStr);
+                      const isChecked = Number(selected) === code;
+                      const inputId = `matrix-${field.id}-${code}`;
+                      return (
+                        <td key={code} className="px-4 py-2 text-center">
+                          <label
+                            htmlFor={inputId}
+                            className="inline-flex h-11 w-full cursor-pointer items-center justify-center rounded-lg hover:bg-emerald-50"
+                          >
+                            <input
+                              id={inputId}
+                              type="radio"
+                              name={`matrix-field-${field.id}`}
+                              checked={isChecked}
+                              onChange={() => onChange(field.id, code)}
+                              aria-label={`${field.label} - ${field.options[code]}`}
+                              className="h-5 w-5 cursor-pointer accent-emerald-700"
+                            />
+                          </label>
+                        </td>
+                      );
+                    })}
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      ) : (
+        /* Mobile Cards */
+        <div className="space-y-3">
+          {fields.map((field) => (
+            <div
+              key={field.id}
+              className="rounded-xl border border-slate-200 bg-slate-50/60 p-3.5"
+            >
+              <FieldRenderer
+                field={field}
+                value={answers[String(field.id)]}
+                onChange={onChange}
+              />
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
