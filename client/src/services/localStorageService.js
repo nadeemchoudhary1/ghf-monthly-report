@@ -1,8 +1,8 @@
 import {
   ASSESSMENT_MONTH_FIELD_ID,
   FIELDS,
+  PUBLIC_SECTIONS,
   SCHEMA_VERSION,
-  SECTIONS,
 } from '../schemas/formSchema.js';
 
 export const DRAFT_STORAGE_KEY = 'ghf_assessment_draft_v1';
@@ -86,7 +86,7 @@ export function validateDraftPayload(raw) {
     };
   }
 
-  const maxSection = SECTIONS.length;
+  const maxSection = PUBLIC_SECTIONS.length;
   const parsedSection = Number(raw.currentSection);
   const currentSection =
     Number.isInteger(parsedSection) && parsedSection >= 1 && parsedSection <= maxSection

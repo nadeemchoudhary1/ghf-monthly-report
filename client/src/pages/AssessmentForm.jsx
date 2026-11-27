@@ -5,7 +5,7 @@ import SectionRenderer from '../components/form/SectionRenderer.jsx';
 import PrivacyNotice from '../components/layout/PrivacyNotice.jsx';
 import ProgressBar from '../components/navigation/ProgressBar.jsx';
 import SectionNavigation from '../components/navigation/SectionNavigation.jsx';
-import { SECTIONS } from '../schemas/formSchema.js';
+import { PUBLIC_SECTIONS } from '../schemas/formSchema.js';
 import { validateAllAnswers } from '../utils/formValidation.js';
 
 export default function AssessmentForm({
@@ -17,6 +17,7 @@ export default function AssessmentForm({
 }) {
   const navigate = useNavigate();
   const [showRestoredBanner, setShowRestoredBanner] = useState(restoredFromStorage);
+  const activeSection = Math.max(1, Math.min(PUBLIC_SECTIONS.length, currentSection));
 
   useEffect(() => {
     setShowRestoredBanner(restoredFromStorage);
@@ -25,20 +26,20 @@ export default function AssessmentForm({
   const errors = validateAllAnswers(answers);
 
   const handleGoToSection = (sectionId) => {
-    const clamped = Math.max(1, Math.min(SECTIONS.length, sectionId));
+    const clamped = Math.max(1, Math.min(PUBLIC_SECTIONS.length, sectionId));
     onSelectSection(clamped);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
   const handlePrevious = () => {
-    if (currentSection > 1) {
-      handleGoToSection(currentSection - 1);
+    if (activeSection > 1) {
+      handleGoToSection(activeSection - 1);
     }
   };
 
   const handleNext = () => {
-    if (currentSection < SECTIONS.length) {
-      handleGoToSection(currentSection + 1);
+    if (activeSection < PUBLIC_SECTIONS.length) {
+      handleGoToSection(activeSection + 1);
     } else {
       navigate('/review');
     }
@@ -59,7 +60,7 @@ export default function AssessmentForm({
           <div className="flex items-center gap-2">
             <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-700" />
             <span>
-              पिछला सहेजा गया ड्राफ्ट स्वतः पुनः लोड किया गया है (भाग {currentSection} से जारी)।
+              पिछला सहेजा गया ड्राफ्ट स्वतः पुनः लोड किया गया है (भाग {activeSection} से जारी)।
             </span>
           </div>
           <button
@@ -74,21 +75,21 @@ export default function AssessmentForm({
       )}
 
       <ProgressBar
-        currentSection={currentSection}
+        currentSection={activeSection}
         answers={answers}
         onSelectSection={handleGoToSection}
         onGoToReview={handleGoToReview}
       />
 
       <SectionRenderer
-        sectionId={currentSection}
+        sectionId={activeSection}
         answers={answers}
         errors={errors}
         onChange={onUpdateAnswer}
       />
 
       <SectionNavigation
-        currentSection={currentSection}
+        currentSection={activeSection}
         onPrevious={handlePrevious}
         onNext={handleNext}
         onGoToReview={handleGoToReview}

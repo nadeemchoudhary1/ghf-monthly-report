@@ -103,6 +103,9 @@ export const SECTIONS = [
   },
 ];
 
+// Public user assessment sections (Sections 1-8; Section 9 is Admin-only)
+export const PUBLIC_SECTIONS = SECTIONS.filter((s) => !s.isResponsibleOnly);
+
 /**
  * Centralized schema keyed by stable numeric field ID (as string keys "1".."71").
  * Do not renumber existing IDs once Phase 2 backend is connected.

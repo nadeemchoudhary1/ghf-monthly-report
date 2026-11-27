@@ -1,5 +1,5 @@
 import { ArrowLeft, ArrowRight, FileCheck2 } from 'lucide-react';
-import { SECTIONS } from '../../schemas/formSchema.js';
+import { PUBLIC_SECTIONS } from '../../schemas/formSchema.js';
 
 export default function SectionNavigation({
   currentSection,
@@ -7,7 +7,7 @@ export default function SectionNavigation({
   onNext,
   onGoToReview,
 }) {
-  const totalSections = SECTIONS.length;
+  const totalSections = PUBLIC_SECTIONS.length;
   const isFirst = currentSection <= 1;
   const isLast = currentSection >= totalSections;
 
@@ -28,32 +28,13 @@ export default function SectionNavigation({
       </button>
 
       <div className="flex flex-col gap-2 sm:flex-row sm:items-center">
-        {currentSection === 8 && (
-          <button
-            type="button"
-            onClick={onGoToReview}
-            className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-900"
-          >
-            <FileCheck2 className="h-4 w-4" />
-            <span>समीक्षा और सबमिट पर जाएँ</span>
-          </button>
-        )}
-
         {!isLast ? (
           <button
             type="button"
             onClick={onNext}
-            className={`flex min-h-[46px] items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold transition-colors ${
-              currentSection === 8
-                ? 'border border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
-                : 'bg-emerald-800 text-white shadow-xs hover:bg-emerald-900'
-            }`}
+            className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-900"
           >
-            <span>
-              {currentSection === 8
-                ? 'भाग 9 : ज़िम्मेदार समीक्षा देखें'
-                : 'अगला भाग'}
-            </span>
+            <span>अगला भाग</span>
             <ArrowRight className="h-4 w-4" />
           </button>
         ) : (
@@ -63,7 +44,7 @@ export default function SectionNavigation({
             className="flex min-h-[46px] items-center justify-center gap-2 rounded-xl bg-emerald-800 px-5 py-2.5 text-sm font-semibold text-white shadow-xs transition-colors hover:bg-emerald-900"
           >
             <FileCheck2 className="h-4 w-4" />
-            <span>अंतिम समीक्षा पर जाएँ</span>
+            <span>समीक्षा और सबमिट पर जाएँ</span>
           </button>
         )}
       </div>

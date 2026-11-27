@@ -3,7 +3,6 @@ import {
   CheckCircle2,
   ClipboardList,
   FileCheck2,
-  Lock,
   RotateCcw,
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -12,7 +11,7 @@ import {
   FIELDS,
   FORM_META,
   getSectionAnsweredCount,
-  SECTIONS,
+  PUBLIC_SECTIONS,
 } from '../schemas/formSchema.js';
 import PrivacyNotice from '../components/layout/PrivacyNotice.jsx';
 
@@ -26,8 +25,8 @@ export default function Home({
 }) {
   const navigate = useNavigate();
 
-  const totalFields = SECTIONS.reduce((sum, s) => sum + s.fieldIds.length, 0);
-  const totalAnswered = SECTIONS.reduce(
+  const totalFields = PUBLIC_SECTIONS.reduce((sum, s) => sum + s.fieldIds.length, 0);
+  const totalAnswered = PUBLIC_SECTIONS.reduce(
     (sum, s) => sum + getSectionAnsweredCount(s.id, answers),
     0
   );
@@ -129,7 +128,7 @@ export default function Home({
       <section className="rounded-2xl border border-emerald-900/10 bg-white p-5 shadow-xs sm:p-6">
         <div className="mb-4 flex items-center justify-between">
           <h3 className="text-base font-bold text-slate-900 sm:text-lg">
-            फ़ॉर्म के सभी 9 भाग
+            फ़ॉर्म के सभी {PUBLIC_SECTIONS.length} भाग
           </h3>
           <span className="rounded-full bg-emerald-50 px-3 py-1 text-xs font-semibold text-emerald-800">
             {totalAnswered}/{totalFields} उत्तर दर्ज
@@ -137,7 +136,7 @@ export default function Home({
         </div>
 
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {SECTIONS.map((section) => {
+          {PUBLIC_SECTIONS.map((section) => {
             const answered = getSectionAnsweredCount(section.id, answers);
             const total = section.fieldIds.length;
             const isComplete = answered === total;
@@ -148,23 +147,14 @@ export default function Home({
                 type="button"
                 onClick={() => handleOpenSection(section.id)}
                 className={`flex flex-col justify-between rounded-xl border p-4 text-left transition-colors ${
-                  section.isResponsibleOnly
-                    ? 'border-amber-300 bg-amber-50/40 hover:bg-amber-50'
-                    : isComplete
-                      ? 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50'
-                      : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
+                  isComplete
+                    ? 'border-emerald-300 bg-emerald-50/50 hover:bg-emerald-50'
+                    : 'border-slate-200 bg-white hover:border-emerald-300 hover:bg-emerald-50/30'
                 }`}
               >
                 <div>
                   <div className="flex items-center justify-between gap-2">
-                    <span
-                      className={`inline-flex items-center gap-1 rounded-lg px-2 py-0.5 text-xs font-bold ${
-                        section.isResponsibleOnly
-                          ? 'bg-amber-100 text-amber-900'
-                          : 'bg-emerald-100 text-emerald-900'
-                      }`}
-                    >
-                      {section.isResponsibleOnly && <Lock className="h-3 w-3" />}
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-emerald-100 px-2 py-0.5 text-xs font-bold text-emerald-900">
                       भाग {section.number}
                     </span>
                     <span className="text-xs font-semibold text-slate-500">

@@ -1,5 +1,5 @@
-import { Check, Lock } from 'lucide-react';
-import { getSectionAnsweredCount, SECTIONS } from '../../schemas/formSchema.js';
+import { Check } from 'lucide-react';
+import { getSectionAnsweredCount, PUBLIC_SECTIONS } from '../../schemas/formSchema.js';
 
 export default function ProgressBar({
   currentSection,
@@ -7,11 +7,12 @@ export default function ProgressBar({
   onSelectSection,
   onGoToReview,
 }) {
-  const totalSections = SECTIONS.length;
-  const stepPercentage = Math.round((currentSection / totalSections) * 100);
+  const totalSections = PUBLIC_SECTIONS.length;
+  const safeCurrent = Math.min(currentSection, totalSections);
+  const stepPercentage = Math.round((safeCurrent / totalSections) * 100);
 
-  const totalFields = SECTIONS.reduce((sum, s) => sum + s.fieldIds.length, 0);
-  const totalAnswered = SECTIONS.reduce(
+  const totalFields = PUBLIC_SECTIONS.reduce((sum, s) => sum + s.fieldIds.length, 0);
+  const totalAnswered = PUBLIC_SECTIONS.reduce(
     (sum, s) => sum + getSectionAnsweredCount(s.id, answers),
     0
   );
@@ -22,10 +23,10 @@ export default function ProgressBar({
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <p className="text-xs font-semibold tracking-wide text-emerald-800 uppercase">
-            भाग {currentSection} / {totalSections}
+            भाग {safeCurrent} / {totalSections}
           </p>
           <p className="text-sm font-bold text-slate-900 sm:text-base">
-            {SECTIONS[currentSection - 1]?.title}
+            {PUBLIC_SECTIONS[safeCurrent - 1]?.title}
           </p>
         </div>
 
@@ -52,33 +53,13 @@ export default function ProgressBar({
         />
       </div>
 
-      {/* Step Pills */}
+      {/* Step Pills (Sections 1-8 + Final Review) */}
       <div className="mt-4 flex items-center gap-2 overflow-x-auto pb-1 md:flex-wrap md:overflow-visible">
-        {SECTIONS.map((section) => {
-          const isCurrent = section.id === currentSection;
+        {PUBLIC_SECTIONS.map((section) => {
+          const isCurrent = section.id === safeCurrent;
           const answeredCount = getSectionAnsweredCount(section.id, answers);
           const isStarted = answeredCount > 0;
           const isComplete = answeredCount === section.fieldIds.length;
-
-          if (section.isResponsibleOnly) {
-            return (
-              <div key={section.id} className="flex shrink-0 items-center gap-2">
-                <div className="h-6 w-px bg-slate-200" />
-                <button
-                  type="button"
-                  onClick={() => onSelectSection(section.id)}
-                  className={`flex min-h-[38px] items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-colors ${
-                    isCurrent
-                      ? 'border-amber-600 bg-amber-600 text-white shadow-xs'
-                      : 'border-amber-300 bg-amber-50 text-amber-900 hover:bg-amber-100'
-                  }`}
-                >
-                  <Lock className="h-3.5 w-3.5" />
-                  <span>9. {section.shortTitle}</span>
-                </button>
-              </div>
-            );
-          }
 
           return (
             <button
