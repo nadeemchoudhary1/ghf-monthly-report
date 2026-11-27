@@ -1,8 +1,12 @@
 import {
   AlertCircle,
   ArrowLeft,
+  Check,
   CheckCircle2,
+  Copy,
+  Eye,
   Loader2,
+  MessageCircle,
   RefreshCw,
   Save,
 } from 'lucide-react';
@@ -27,6 +31,7 @@ import {
   retrySubmissionSheetsRequest,
   saveAdminReviewRequest,
 } from '../../services/adminApi.js';
+import { buildWhatsAppShareInfo } from '../../utils/whatsappShare.js';
 
 export default function AdminSubmissionDetail() {
   const { sid } = useParams();
@@ -39,6 +44,8 @@ export default function AdminSubmissionDetail() {
   const [syncBanner, setSyncBanner] = useState('');
   const [error, setError] = useState('');
   const [saveMessage, setSaveMessage] = useState('');
+  const [copiedWhatsApp, setCopiedWhatsApp] = useState(false);
+  const [showWhatsAppPreview, setShowWhatsAppPreview] = useState(false);
 
   const loadDetail = useCallback(async () => {
     setLoading(true);
@@ -142,6 +149,25 @@ export default function AdminSubmissionDetail() {
 
   const memberSections = SECTIONS.filter((s) => s.id !== SECTION_9_ID);
   const section9Fields = getSectionFields(SECTION_9_ID);
+  const whatsappInfo = buildWhatsAppShareInfo({
+    submission,
+    reviewStatus,
+    reviewAnswers,
+  });
+
+  const hasUnsavedReviewChanges =
+    Number(reviewStatus) !== Number(submission.rs ?? 0) ||
+    JSON.stringify(reviewAnswers || {}) !== JSON.stringify(submission.rv || {});
+
+  const handleCopyWhatsApp = async () => {
+    try {
+      await navigator.clipboard.writeText(whatsappInfo.message);
+      setCopiedWhatsApp(true);
+      setTimeout(() => setCopiedWhatsApp(false), 2500);
+    } catch {
+      setShowWhatsAppPreview(true);
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -338,7 +364,48 @@ export default function AdminSubmissionDetail() {
               ))}
           </div>
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap items-center justify-end gap-3">
+            <button
+              type="button"
+              onClick={() => setShowWhatsAppPreview((v) => !v)}
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-slate-300 bg-white px-4 py-2.5 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+            >
+              <Eye className="h-4 w-4" />
+              <span>{showWhatsAppPreview ? 'संदेश छिपाएँ' : 'संदेश देखें'}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={handleCopyWhatsApp}
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl border border-emerald-700 bg-white px-4 py-2.5 text-sm font-semibold text-emerald-900 hover:bg-emerald-50"
+            >
+              {copiedWhatsApp ? (
+                <>
+                  <Check className="h-4 w-4 text-emerald-700" />
+                  <span>कॉपी हो गया</span>
+                </>
+              ) : (
+                <>
+                  <Copy className="h-4 w-4" />
+                  <span>संदेश कॉपी करें</span>
+                </>
+              )}
+            </button>
+
+            <a
+              href={whatsappInfo.url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex min-h-[46px] items-center gap-2 rounded-xl bg-green-600 px-5 py-2.5 text-sm font-bold text-white shadow-xs hover:bg-green-700"
+            >
+              <MessageCircle className="h-4 w-4" />
+              <span>
+                {whatsappInfo.hasDirectPhone
+                  ? 'WhatsApp पर भेजें'
+                  : 'WhatsApp खोलें'}
+              </span>
+            </a>
+
             <button
               type="submit"
               disabled={saving}
@@ -356,6 +423,33 @@ export default function AdminSubmissionDetail() {
                 </>
               )}
             </button>
+          </div>
+
+          {/* WhatsApp Target Number & Optional Unsaved Hint */}
+          <div className="rounded-xl border border-emerald-200 bg-emerald-50/60 p-3.5 text-xs text-emerald-950">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p>
+                <strong>WhatsApp प्राप्तकर्ता नंबर:</strong>{' '}
+                {whatsappInfo.hasDirectPhone ? (
+                  <span className="font-mono font-bold">+{whatsappInfo.phoneDigits}</span>
+                ) : (
+                  <span className="text-amber-900">
+                    मोबाइल नंबर उपलब्ध नहीं — WhatsApp पर संपर्क चुनना होगा
+                  </span>
+                )}
+              </p>
+              {hasUnsavedReviewChanges && (
+                <span className="font-semibold text-amber-800">
+                  * कृपया पहले &quot;समीक्षा सहेजें&quot; दबाकर बदलाव सेव कर लें।
+                </span>
+              )}
+            </div>
+
+            {showWhatsAppPreview && (
+              <pre className="mt-3 max-h-80 overflow-auto whitespace-pre-wrap rounded-lg border border-emerald-200 bg-white p-3 font-sans text-xs leading-relaxed text-slate-800">
+                {whatsappInfo.message}
+              </pre>
+            )}
           </div>
         </form>
       </section>

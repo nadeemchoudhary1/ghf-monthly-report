@@ -36,22 +36,53 @@ export function sanitizeMongoOperators(req, _res, next) {
   return next();
 }
 
+function normalizeOrigin(origin) {
+  return String(origin || '').trim().replace(/\/+$/, '');
+}
+
+function isLocalDevNetworkOrigin(origin) {
+  try {
+    const parsed = new URL(origin);
+    if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
+      return false;
+    }
+    const host = parsed.hostname;
+    if (host === 'localhost' || host === '127.0.0.1') {
+      return true;
+    }
+    if (/^192\.168\.\d{1,3}\.\d{1,3}$/.test(host)) {
+      return true;
+    }
+    if (/^10\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(host)) {
+      return true;
+    }
+    const m172 = host.match(/^172\.(\d{1,3})\.\d{1,3}\.\d{1,3}$/);
+    if (m172) {
+      const secondOctet = Number(m172[1]);
+      return secondOctet >= 16 && secondOctet <= 31;
+    }
+    return false;
+  } catch {
+    return false;
+  }
+}
+
 export function getAllowedOriginsFromEnv() {
   const configured = process.env.CORS_ORIGINS
     ? process.env.CORS_ORIGINS.split(',')
-        .map((o) => o.trim())
+        .map(normalizeOrigin)
         .filter(Boolean)
     : [];
 
   if (process.env.FRONTEND_URL && process.env.FRONTEND_URL.trim()) {
-    const fUrl = process.env.FRONTEND_URL.trim().replace(/\/+$/, '');
-    if (!configured.includes(fUrl)) {
+    const fUrl = normalizeOrigin(process.env.FRONTEND_URL);
+    if (fUrl && !configured.includes(fUrl)) {
       configured.push(fUrl);
     }
   }
 
   if (configured.length > 0) {
-    return configured;
+    return Array.from(new Set(configured));
   }
 
   return [
@@ -60,6 +91,23 @@ export function getAllowedOriginsFromEnv() {
     'http://localhost:4173',
     'http://127.0.0.1:4173',
   ];
+}
+
+export function isOriginAllowed(origin) {
+  if (!origin) return true;
+  const normalized = normalizeOrigin(origin);
+  if (!normalized) return false;
+
+  const allowed = getAllowedOriginsFromEnv();
+  if (allowed.includes(normalized)) {
+    return true;
+  }
+
+  if (process.env.NODE_ENV !== 'production' && isLocalDevNetworkOrigin(normalized)) {
+    return true;
+  }
+
+  return false;
 }
 
 /**
@@ -74,14 +122,11 @@ export function adminCsrfGuard(req, res, next) {
   }
 
   const origin = req.headers.origin;
-  if (origin) {
-    const allowed = getAllowedOriginsFromEnv();
-    if (!allowed.includes(origin)) {
-      return res.status(403).json({
-        success: false,
-        message: 'CSRF check failed: origin not allowed.',
-      });
-    }
+  if (origin && !isOriginAllowed(origin)) {
+    return res.status(403).json({
+      success: false,
+      message: 'CSRF check failed: origin not allowed.',
+    });
   }
 
   const xRequestedWith = req.headers['x-requested-with'];

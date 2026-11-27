@@ -5,11 +5,8 @@ export function getApiBaseUrl() {
   if (configured && String(configured).trim()) {
     return String(configured).trim().replace(/\/+$/, '');
   }
-  // Use same-origin /api/* proxy in production (Netlify -> Render) so HttpOnly cookies remain first-party
-  if (import.meta.env.PROD) {
-    return '';
-  }
-  return 'http://localhost:5000';
+  // Use same-origin /api/* proxy in both Vite dev/preview and Netlify production
+  return '';
 }
 
 /**

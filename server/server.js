@@ -8,7 +8,7 @@ import { pathToFileURL } from 'url';
 import { closeDatabaseConnection, connectToDatabase } from './config/database.js';
 import { errorHandler, notFoundHandler } from './middleware/errorMiddleware.js';
 import {
-  getAllowedOriginsFromEnv,
+  isOriginAllowed,
   sanitizeMongoOperators,
 } from './middleware/securityMiddleware.js';
 import adminAuthRoutes from './routes/adminAuthRoutes.js';
@@ -36,10 +36,10 @@ export function createApp({ rateLimitMax } = {}) {
   app.use(
     cors({
       origin(origin, callback) {
-        const allowedOrigins = getAllowedOriginsFromEnv();
-        if (!origin || allowedOrigins.includes(origin)) {
+        if (isOriginAllowed(origin)) {
           return callback(null, true);
         }
+        logEvent('warn', 'cors_origin_rejected', { origin });
         return callback(new Error('Not allowed by CORS'));
       },
       credentials: true,
