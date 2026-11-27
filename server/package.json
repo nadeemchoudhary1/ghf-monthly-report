@@ -1,0 +1,30 @@
+{
+  "name": "ghf-monthly-jaiza-server",
+  "version": "1.0.0",
+  "description": "Backend API for Guided Humanity Foundation Monthly Tarbiyati & Karkun Jaiza Portal",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed:admin": "node scripts/seedAdmin.js",
+    "backup:db": "node scripts/backupDatabase.mjs",
+    "restore:db": "node scripts/restoreDatabase.mjs"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "exceljs": "^4.4.0",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "googleapis": "^144.0.0",
+    "helmet": "^8.0.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.9.5"
+  }
+}
